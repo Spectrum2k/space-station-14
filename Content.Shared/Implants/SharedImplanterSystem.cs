@@ -21,6 +21,7 @@ public abstract class SharedImplanterSystem : EntitySystem
     [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
+    [Dependency] private readonly IEntityManager _entityManager = default!;
 
     public override void Initialize()
     {
@@ -79,6 +80,9 @@ public abstract class SharedImplanterSystem : EntitySystem
         RaiseLocalEvent(target, ref ev);
 
         Dirty(implanter, component);
+
+        if (implantComp.CharComponents.Count > 0)
+            _entityManager.AddComponents(target, implantComp.CharComponents);
     }
 
     public bool CanImplant(
@@ -141,6 +145,9 @@ public abstract class SharedImplanterSystem : EntitySystem
                     permanentFound = implantComp.Permanent;
                     continue;
                 }
+
+                if (implantComp.CharComponents.Count > 0 && implantComp.ImplantedEntity is not null)
+                    _entityManager.RemoveComponents(implantComp.ImplantedEntity.Value, implantComp.CharComponents);
 
                 _container.Remove(implant, implantContainer);
                 implantComp.ImplantedEntity = null;

@@ -49,6 +49,9 @@ public sealed partial class SubdermalImplantComponent : Component
     /// </summary>
     [DataField]
     public EntityWhitelist? Blacklist;
+
+    [DataField]
+    public ComponentRegistry CharComponents { get; private set; } = new();
 }
 
 /// <summary>
