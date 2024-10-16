@@ -1,0 +1,35 @@
+- type: entity
+  parent: BaseSubdermalImplant
+  id: SpeedImplant
+  name: speed implant
+  description: speed implant
+  categories: [ HideSpawnMenu ]
+  components:
+    - type: SubdermalImplant
+      implantAction: ActionActivateSpeedImplant
+      whitelist:
+        components:
+        - MobState
+      charComponents:
+      - type: SpeedImplant
+
+- type: entity
+  id: SpeedImplanter
+  suffix: speed
+  parent: BaseImplantOnlyImplanter
+  components:
+    - type: Implanter
+      implant: SpeedImplant
+
+- type: entity
+  id: ActionActivateSpeedImplant
+  name: Activate Speed Implant
+  description: speed implant
+  components:
+  - type: InstantAction
+    useDelay: 15
+    itemIconStyle: BigAction
+    icon:
+      sprite: Clothing/Shoes/Boots/speedboots.rsi
+      state: icon
+    event: !type:UseSpeedImplantEvent
