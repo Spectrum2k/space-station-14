@@ -1,7 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using Content.Server.Administration;
 using Content.Server.Chat.Managers;
-using Content.Shared.Access.Components;
+using Content.Shared.Preferences;
 using Robust.Shared.Player;
 
 namespace Content.Server.Custom.RenameOnStartComponent;
@@ -19,6 +19,12 @@ public sealed class RenameOnStartSystem : EntitySystem
         SubscribeLocalEvent<RenameOnStartComponent, PlayerAttachedEvent>(OnPlayerAttached);
     }
 
+    private void OnPlayerAttached(EntityUid ent, RenameOnStartComponent component, PlayerAttachedEvent message)
+    {
+        OpenNameChangeMenu(ent, component, message);
+        RemComp<RenameOnStartComponent>(ent);
+    }
+
     private void OpenNameChangeMenu(EntityUid ent, RenameOnStartComponent component, PlayerAttachedEvent message)
     {
         _quickDialog.OpenDialog(message.Player,
@@ -26,13 +32,24 @@ public sealed class RenameOnStartSystem : EntitySystem
             Loc.GetString("rename-onstart-dialog-newname-text"),
             (LongString newName) =>
             {
-                if (newName.String.Length > IdCardConsoleComponent.MaxFullNameLength)
+                if (newName.String.Length < 2)
+                {
+                    _chatManager.DispatchServerMessage(
+                        message.Player,
+                        Loc.GetString("rename-onstart-too-short"),
+                        true);
+                    OpenNameChangeMenu(ent, component, message);
+                    return;
+                }
+
+                if (newName.String.Length > HumanoidCharacterProfile.MaxNameLength)
                 {
                     _chatManager.DispatchServerMessage(
                         message.Player,
                         Loc.GetString("cmd-rename-too-long"),
                         true);
                     OpenNameChangeMenu(ent, component, message);
+                    return;
                 }
 
                 if (RestrictedNameRegex.IsMatch(newName.String))
@@ -42,15 +59,10 @@ public sealed class RenameOnStartSystem : EntitySystem
                         Loc.GetString("rename-onstart-regex-error"),
                         true);
                     OpenNameChangeMenu(ent, component, message);
+                    return;
                 }
 
                 _metaSystem.SetEntityName(ent, newName.String);
             });
-    }
-
-    private void OnPlayerAttached(EntityUid ent, RenameOnStartComponent component, PlayerAttachedEvent message)
-    {
-        OpenNameChangeMenu(ent, component, message);
-        RemComp<RenameOnStartComponent>(ent);
     }
 }
